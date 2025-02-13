@@ -1,20 +1,19 @@
 # Restorano Dienos Meniu Sistema
 
-Ši sistema leidžia valdyti restorano dienos meniu ir rodyti jį TV ekrane. Sistema sukurta naudojant React, TypeScript, Material-UI ir Firebase.
+Ši sistema leidžia valdyti restorano dienos meniu ir rodyti jį TV ekrane. Sistema sukurta naudojant React, TypeScript ir Material-UI.
 
 ## Funkcijos
 
 - Administratoriaus sąsaja patiekalų valdymui
 - TV ekrano rodinys klientams
-- Realaus laiko atnaujinimai
 - Patiekalų prieinamumo valdymas
 - Kategorijų sistema
+- Paprastas autentifikavimas
 
 ## Reikalavimai
 
 - Node.js (v14 arba naujesnė versija)
 - NPM (v6 arba naujesnė versija)
-- Firebase projektas
 
 ## Diegimas
 
@@ -28,25 +27,6 @@ cd restaurant-menu
 ```bash
 npm install
 ```
-
-3. Sukurkite Firebase projektą:
-   - Eikite į [Firebase Console](https://console.firebase.google.com/)
-   - Sukurkite naują projektą
-   - Įjunkite Firestore duomenų bazę
-   - Sukurkite žiniatinklio programą
-   - Nukopijuokite Firebase konfigūraciją
-
-4. Sukurkite `.env` failą projekto šakniniame kataloge ir įdėkite savo Firebase konfigūraciją:
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
-5. Atnaujinkite Firebase konfigūraciją faile `src/firebase.ts`
 
 ## Paleidimas
 
@@ -62,13 +42,16 @@ npm run dev
 ## Naudojimas
 
 ### Administratoriaus sąsaja
+- Prisijungimo duomenys:
+  - Vartotojo vardas: `admin`
+  - Slaptažodis: `admin123`
 - Pasirinkite patiekalus dienos meniu
 - Pažymėkite patiekalus kaip neprieinamus
 - Valdykite visą dienos meniu
 
 ### TV ekranas
 - Rodo aktyvų dienos meniu
-- Automatiškai atnaujinama kai administratorius atlieka pakeitimus
+- Automatiškai atnaujinama kas 5 sekundes
 - Neprieinami patiekalai rodomi perbraukti
 
 ## Pagalba

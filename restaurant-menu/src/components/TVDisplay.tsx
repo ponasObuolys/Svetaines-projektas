@@ -6,39 +6,23 @@ import {
   Grid,
   Paper,
 } from '@mui/material';
-import { collection, getDocs, onSnapshot, doc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Dish, DailyMenu, Category } from '../types';
+import { Dish, DailyMenu } from '../types';
+import { getAllDishes, getDailyMenu } from '../utils/menuService';
 
 export const TVDisplay: React.FC = () => {
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(null);
+  const [dishes] = useState<Dish[]>(getAllDishes());
+  const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(getDailyMenu());
 
   useEffect(() => {
-    // Fetch all dishes once
-    const fetchDishes = async () => {
-      const dishesSnapshot = await getDocs(collection(db, 'dishes'));
-      const dishesData = dishesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Dish));
-      setDishes(dishesData);
-    };
+    const interval = setInterval(() => {
+      const updatedMenu = getDailyMenu();
+      setDailyMenu(updatedMenu);
+    }, 5000); // Check for updates every 5 seconds
 
-    fetchDishes();
-
-    // Subscribe to daily menu changes
-    const today = new Date().toISOString().split('T')[0];
-    const unsubscribe = onSnapshot(doc(db, 'dailyMenus', today), (doc) => {
-      if (doc.exists()) {
-        setDailyMenu(doc.data() as DailyMenu);
-      }
-    });
-
-    return () => unsubscribe();
+    return () => clearInterval(interval);
   }, []);
 
-  const renderCategoryDishes = (category: Category) => {
+  const renderCategoryDishes = (category: string) => {
     const menuItems = dailyMenu?.items || [];
     const categoryDishes = dishes
       .filter(dish => dish.category === category)
@@ -85,12 +69,14 @@ export const TVDisplay: React.FC = () => {
     );
   };
 
+  const categories = [...new Set(dishes.map(dish => dish.category))];
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" align="center" sx={{ mb: 6 }}>
         Dienos meniu
       </Typography>
-      {Object.values(Category).map(category => renderCategoryDishes(category))}
+      {categories.map(category => renderCategoryDishes(category))}
     </Container>
   );
 }; 

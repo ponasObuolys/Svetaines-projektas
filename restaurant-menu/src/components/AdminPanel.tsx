@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -9,78 +10,48 @@ import {
   Switch,
   Button,
 } from '@mui/material';
-import { collection, getDocs, setDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Dish, DailyMenu, Category } from '../types';
+import { Dish, DailyMenu } from '../types';
+import { isAuthenticated, logout } from '../utils/auth';
+import {
+  getAllDishes,
+  getDailyMenu,
+  addDishToMenu,
+  toggleDishAvailability,
+  removeDishFromMenu
+} from '../utils/menuService';
 
 export const AdminPanel: React.FC = () => {
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(null);
+  const navigate = useNavigate();
+  const [dishes] = useState<Dish[]>(getAllDishes());
+  const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(getDailyMenu());
 
   useEffect(() => {
-    const fetchData = async () => {
-      // Fetch dishes
-      const dishesSnapshot = await getDocs(collection(db, 'dishes'));
-      const dishesData = dishesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Dish));
-      setDishes(dishesData);
-
-      // Fetch today's menu
-      const today = new Date().toISOString().split('T')[0];
-      const menuDoc = await getDocs(collection(db, 'dailyMenus'));
-      const todayMenu = menuDoc.docs.find(doc => doc.data().date === today);
-      
-      if (todayMenu) {
-        setDailyMenu(todayMenu.data() as DailyMenu);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const toggleDishAvailability = async (dishId: string) => {
-    if (!dailyMenu) return;
-
-    const updatedItems = dailyMenu.items.map(item =>
-      item.dishId === dishId ? { ...item, available: !item.available } : item
-    );
-
-    const updatedMenu = {
-      ...dailyMenu,
-      items: updatedItems,
-    };
-
-    await setDoc(doc(db, 'dailyMenus', dailyMenu.id), updatedMenu);
-    setDailyMenu(updatedMenu);
-  };
-
-  const addToMenu = async (dish: Dish) => {
-    if (!dailyMenu) {
-      const today = new Date().toISOString().split('T')[0];
-      const newMenu: DailyMenu = {
-        id: today,
-        date: today,
-        items: [{ dishId: dish.id, available: true }],
-      };
-      await setDoc(doc(db, 'dailyMenus', today), newMenu);
-      setDailyMenu(newMenu);
-    } else {
-      const updatedItems = [
-        ...dailyMenu.items,
-        { dishId: dish.id, available: true },
-      ];
-      const updatedMenu = {
-        ...dailyMenu,
-        items: updatedItems,
-      };
-      await setDoc(doc(db, 'dailyMenus', dailyMenu.id), updatedMenu);
-      setDailyMenu(updatedMenu);
+    if (!isAuthenticated()) {
+      navigate('/login');
     }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
-  const renderDishesbyCategory = (category: Category) => {
+  const handleAddToMenu = (dish: Dish) => {
+    addDishToMenu(dish);
+    setDailyMenu(getDailyMenu());
+  };
+
+  const handleToggleAvailability = (dishId: string) => {
+    toggleDishAvailability(dishId);
+    setDailyMenu(getDailyMenu());
+  };
+
+  const handleRemoveFromMenu = (dishId: string) => {
+    removeDishFromMenu(dishId);
+    setDailyMenu(getDailyMenu());
+  };
+
+  const renderDishesbyCategory = (category: string) => {
     const categoryDishes = dishes.filter(dish => dish.category === category);
     
     return (
@@ -99,7 +70,7 @@ export const AdminPanel: React.FC = () => {
                   </Typography>
                   <Button
                     variant="contained"
-                    onClick={() => addToMenu(dish)}
+                    onClick={() => handleAddToMenu(dish)}
                     disabled={dailyMenu?.items.some(item => item.dishId === dish.id)}
                   >
                     Pridėti į dienos meniu
@@ -113,11 +84,18 @@ export const AdminPanel: React.FC = () => {
     );
   };
 
+  const categories = [...new Set(dishes.map(dish => dish.category))];
+
   return (
     <Container>
-      <Typography variant="h4" sx={{ my: 4 }}>
-        Dienos meniu valdymas
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
+        <Typography variant="h4">
+          Dienos meniu valdymas
+        </Typography>
+        <Button variant="outlined" onClick={handleLogout}>
+          Atsijungti
+        </Button>
+      </Box>
       
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>
@@ -134,13 +112,23 @@ export const AdminPanel: React.FC = () => {
                     <Typography color="textSecondary">
                       {dish.price} €
                     </Typography>
-                    <Switch
-                      checked={item.available}
-                      onChange={() => toggleDishAvailability(item.dishId)}
-                    />
-                    <Typography>
-                      {item.available ? 'Galima' : 'Negalima'}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                      <Switch
+                        checked={item.available}
+                        onChange={() => handleToggleAvailability(item.dishId)}
+                      />
+                      <Typography>
+                        {item.available ? 'Galima' : 'Negalima'}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleRemoveFromMenu(item.dishId)}
+                      sx={{ mt: 1 }}
+                    >
+                      Pašalinti
+                    </Button>
                   </CardContent>
                 </Card>
               </Grid>
@@ -152,7 +140,7 @@ export const AdminPanel: React.FC = () => {
       <Typography variant="h5" sx={{ mb: 2 }}>
         Visi patiekalai
       </Typography>
-      {Object.values(Category).map(category => renderDishesbyCategory(category))}
+      {categories.map(category => renderDishesbyCategory(category))}
     </Container>
   );
 }; 

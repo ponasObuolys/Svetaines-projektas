@@ -10,3 +10,6 @@ KARŠTI
 - ŽUVIS
 KITI
 SRIUBOS
+
+admin
+admin123
