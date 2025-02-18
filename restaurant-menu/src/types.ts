@@ -6,6 +6,7 @@ export type Category =
   | 'KARŠTI_BULVINIAI'
   | 'KARŠTI_JAUTIENA'
   | 'KARŠTI_KIAULIENA'
+  | 'KARŠTI_KALAKUTIENA'
   | 'KARŠTI_VIŠTIENA'
   | 'KARŠTI_ŽUVIS'
   | 'KITI'
