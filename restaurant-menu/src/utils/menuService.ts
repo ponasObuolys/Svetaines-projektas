@@ -1,10 +1,17 @@
 import { sampleDishes } from '../sampleData';
-import { Dish, DailyMenu, DailyMenuItem } from '../types';
+import { Dish, DailyMenu } from '../types';
 
 const DAILY_MENU_KEY = 'dailyMenu';
+const DISHES_KEY = 'dishes';
+
+// Initialize dishes in localStorage if not present
+if (!localStorage.getItem(DISHES_KEY)) {
+  localStorage.setItem(DISHES_KEY, JSON.stringify(sampleDishes));
+}
 
 export const getAllDishes = (): Dish[] => {
-  return sampleDishes;
+  const stored = localStorage.getItem(DISHES_KEY);
+  return stored ? JSON.parse(stored) : sampleDishes;
 };
 
 export const getDailyMenu = (): DailyMenu | null => {
@@ -69,4 +76,12 @@ export const removeDishFromMenu = (dishId: string): void => {
     ...menu,
     items: updatedItems
   });
+};
+
+export const updateDishPrice = (dishId: string, newPrice: number): void => {
+  const dishes = getAllDishes();
+  const updatedDishes = dishes.map(dish => 
+    dish.id === dishId ? { ...dish, price: newPrice } : dish
+  );
+  localStorage.setItem(DISHES_KEY, JSON.stringify(updatedDishes));
 }; 

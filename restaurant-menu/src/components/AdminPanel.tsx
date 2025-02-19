@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -9,7 +9,15 @@ import {
   CardContent,
   Switch,
   Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  IconButton,
 } from '@mui/material';
+import CreateIcon from '@mui/icons-material/Create';
 import { Dish, DailyMenu } from '../types';
 import { isAuthenticated, logout } from '../utils/auth';
 import {
@@ -17,13 +25,20 @@ import {
   getDailyMenu,
   addDishToMenu,
   toggleDishAvailability,
-  removeDishFromMenu
+  removeDishFromMenu,
+  updateDishPrice,
 } from '../utils/menuService';
 
 export const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
-  const [dishes] = useState<Dish[]>(getAllDishes());
+  const [dishes, setDishes] = useState<Dish[]>(getAllDishes());
   const [dailyMenu, setDailyMenu] = useState<DailyMenu | null>(getDailyMenu());
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [newPrice, setNewPrice] = useState<string>('');
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [priceDialogOpen, setPriceDialogOpen] = useState(false);
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -51,6 +66,38 @@ export const AdminPanel: React.FC = () => {
     setDailyMenu(getDailyMenu());
   };
 
+  const handlePriceUpdate = (dish: Dish) => {
+    setSelectedDish(dish);
+    setNewPrice(dish.price.toString());
+    setPinDialogOpen(true);
+    setPin('');
+    setError('');
+  };
+
+  const handlePinSubmit = useCallback(() => {
+    if (pin === '3438' && selectedDish) {
+      setPinDialogOpen(false);
+      setPriceDialogOpen(true);
+    } else {
+      setError('Neteisingas PIN kodas');
+    }
+  }, [pin, selectedDish]);
+
+  const handlePriceSubmit = useCallback(() => {
+    if (selectedDish) {
+      const updatedPrice = parseFloat(newPrice);
+      if (!isNaN(updatedPrice) && updatedPrice > 0) {
+        updateDishPrice(selectedDish.id, updatedPrice);
+        setDishes(getAllDishes());
+        setDailyMenu(getDailyMenu());
+        setPriceDialogOpen(false);
+        setError('');
+      } else {
+        setError('Netinkama kaina');
+      }
+    }
+  }, [selectedDish, newPrice]);
+
   const renderDishesbyCategory = (category: string) => {
     const categoryDishes = dishes.filter(dish => dish.category === category);
     
@@ -65,9 +112,18 @@ export const AdminPanel: React.FC = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6">{dish.name}</Typography>
-                  <Typography color="textSecondary">
-                    {dish.price} €
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 1 }}>
+                    <Typography color="textSecondary">
+                      {dish.price} €
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => handlePriceUpdate(dish)}
+                      sx={{ ml: 1 }}
+                    >
+                      <CreateIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                   <Button
                     variant="contained"
                     onClick={() => handleAddToMenu(dish)}
@@ -141,6 +197,50 @@ export const AdminPanel: React.FC = () => {
         Visi patiekalai
       </Typography>
       {categories.map(category => renderDishesbyCategory(category))}
+
+      <Dialog open={pinDialogOpen} onClose={() => setPinDialogOpen(false)}>
+        <DialogTitle>Įveskite PIN kodą</DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <TextField
+            autoFocus
+            margin="dense"
+            label="PIN kodas"
+            type="password"
+            fullWidth
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            inputProps={{ maxLength: 4 }}
+            onKeyPress={(e) => e.key === 'Enter' && handlePinSubmit()}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPinDialogOpen(false)}>Atšaukti</Button>
+          <Button onClick={handlePinSubmit}>Patvirtinti</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={priceDialogOpen} onClose={() => setPriceDialogOpen(false)}>
+        <DialogTitle>Įveskite naują kainą</DialogTitle>
+        <DialogContent>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nauja kaina"
+            type="number"
+            fullWidth
+            value={newPrice}
+            onChange={(e) => setNewPrice(e.target.value)}
+            inputProps={{ step: '0.10' }}
+            onKeyPress={(e) => e.key === 'Enter' && handlePriceSubmit()}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPriceDialogOpen(false)}>Atšaukti</Button>
+          <Button onClick={handlePriceSubmit}>Išsaugoti</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }; 
