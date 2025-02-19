@@ -7,6 +7,8 @@ This project aims to develop a dynamic system comprising:
 - **Admin Panel (`/admin`)**: An interface for administrators to manage a catalog of dishes, including adding, updating, and removing items.
 - **TV Display (`/tv`)**: A public-facing page that showcases available dishes in real-time, reflecting updates made through the admin panel.
 
+**Note**: Authentication will utilize a hardcoded admin login, and all product data will be managed locally within the application state.
+
 ## Milestones
 
 ### 1. Project Initialization
@@ -22,16 +24,16 @@ This project aims to develop a dynamic system comprising:
 
 ### 2. Admin Panel Development
 
-- **Authentication and Authorization**
-  - Implement user authentication to secure the admin panel.
-  - Set up role-based access control to restrict functionalities appropriately.
+- **Authentication Implementation**
+  - Develop a login component that validates user credentials against hardcoded values (`username: admin`, `password: admin123`).
+  - Implement client-side routing to restrict access to the admin panel for unauthorized users.
 
 - **Dish Management Features**
-  - Develop CRUD (Create, Read, Update, Delete) operations for dish entries.
-  - Include form validations and error handling mechanisms.
+  - Design and implement functionality to add, update, and remove dishes within the application state.
+  - Ensure form validations and error handling mechanisms are in place.
 
-- **Real-Time Updates**
-  - Integrate WebSocket or Server-Sent Events (SSE) to push updates to the TV display instantly when changes occur in the admin panel.
+- **State Persistence**
+  - Utilize browser's `localStorage` to persist dish data and authentication status, ensuring data remains consistent across sessions. citeturn0search11
 
 ### 3. TV Display Development
 
@@ -39,28 +41,29 @@ This project aims to develop a dynamic system comprising:
   - Design a responsive and visually appealing layout suitable for large screens.
   - Ensure accessibility standards are met.
 
-- **Data Fetching and State Management**
-  - Implement data fetching mechanisms to retrieve the current list of available dishes.
-  - Manage state efficiently to reflect real-time updates from the admin panel.
+- **Data Rendering**
+  - Fetch and display the list of available dishes from the local application state or `localStorage`.
+  - Implement real-time updates to reflect changes made in the admin panel.
 
 ### 4. Integration and Testing
 
-- **API Development**
-  - Develop RESTful APIs or GraphQL endpoints to facilitate communication between the admin panel and the TV display.
+- **Component Integration**
+  - Ensure seamless interaction between the admin panel and TV display components.
+  - Implement state management solutions to facilitate data sharing between components.
 
 - **Testing**
   - Write unit tests for individual components and functions.
-  - Develop integration tests to ensure seamless interaction between the admin panel and TV display.
+  - Develop integration tests to ensure cohesive functionality between the admin panel and TV display.
   - Conduct end-to-end testing to simulate real-world usage scenarios.
 
 ### 5. Deployment and Monitoring
 
 - **Deployment**
-  - Set up continuous integration/continuous deployment (CI/CD) pipelines to automate the deployment process.
-  - Deploy the application to a cloud platform or on-premises server as per project requirements.
+  - Prepare the application for deployment by building optimized production files.
+  - Deploy the application to a static hosting service or server as per project requirements.
 
 - **Monitoring and Maintenance**
-  - Implement logging and monitoring tools to track application performance and errors.
+  - Implement logging mechanisms to track application performance and errors.
   - Establish a maintenance plan for regular updates and feature enhancements.
 
 ## Timeline
@@ -68,9 +71,9 @@ This project aims to develop a dynamic system comprising:
 | Milestone                 | Estimated Completion |
 |---------------------------|----------------------|
 | Project Initialization    | 1 week               |
-| Admin Panel Development   | 3 weeks              |
-| TV Display Development    | 2 weeks              |
-| Integration and Testing   | 2 weeks              |
+| Admin Panel Development   | 2 weeks              |
+| TV Display Development    | 1 week               |
+| Integration and Testing   | 1 week               |
 | Deployment and Monitoring | 1 week               |
 
 *Note: Timelines are estimates and may vary based on project scope and resource availability.*
@@ -79,22 +82,21 @@ This project aims to develop a dynamic system comprising:
 
 - **Technologies**
   - React, Vite, TypeScript
-  - State Management: Redux or Context API
-  - Real-Time Communication: WebSocket or Server-Sent Events (SSE)
+  - State Management: Context API or Redux
+  - Routing: React Router
   - Styling: CSS-in-JS solutions like styled-components or traditional CSS/SASS
 
 - **Resources**
   - Design mockups and wireframes
-  - API documentation
-  - Access to development and production servers
+  - Access to development and production environments
 
 ## Risks and Mitigations
 
-- **Scope Creep**
-  - *Mitigation*: Define clear project requirements and obtain stakeholder approval before development begins.
+- **Security Concerns**
+  - *Mitigation*: Clearly communicate that the hardcoded credentials are for development or internal use only and should not be used in production environments.
 
-- **Technical Challenges**
-  - *Mitigation*: Allocate time for research and prototyping during the initial phases.
+- **Data Persistence Issues**
+  - *Mitigation*: Implement thorough testing to ensure data stored in `localStorage` is managed correctly and persists as expected.
 
-- **Resource Constraints**
-  - *Mitigation*: Ensure the team has the necessary skills and tools; consider training sessions if needed.
+- **Scalability Limitations**
+  - *Mitigation*: Acknowledge that storing data locally is suitable for small-scale applications; plan for potential future integration with a backend service if scalability becomes a requirement.
